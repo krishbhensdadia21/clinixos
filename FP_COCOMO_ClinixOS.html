@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FP Analysis & COCOMO Estimation - ClinixOS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #4a5568;
+      font-family: 'Caveat', cursive;
+      color: #1a237e; /* authentic blue ballpoint ink */
+      padding: 30px 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 35px;
+    }
+
+    .no-print-toolbar {
+      background: #ffffff;
+      padding: 12px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+      font-family: sans-serif;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      max-width: 820px;
+      width: 100%;
+      justify-content: space-between;
+    }
+    .print-btn {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .print-btn:hover {
+      background: #1d4ed8;
+    }
+
+    /* A4 Notebook Page */
+    .notebook-page {
+      width: 820px;
+      min-height: 1140px;
+      background-color: #fbfbf9;
+      background-image: 
+        /* Left vertical red margin lines (double line like classic Indian/standard practical notebook) */
+        linear-gradient(90deg, transparent 82px, #e74c3c 82px, #e74c3c 83px, transparent 83px, transparent 87px, #e74c3c 87px, #e74c3c 88px, transparent 88px),
+        /* Horizontal blue ruled lines */
+        repeating-linear-gradient(transparent, transparent 31px, #b2c7e0 31px, #b2c7e0 32px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      border-radius: 4px;
+      position: relative;
+      padding: 40px 45px 40px 105px;
+      line-height: 32px;
+      font-size: 21px;
+    }
+
+    /* Top Header Bar with Page & Date Box */
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 22px;
+      border-bottom: 2px solid #e74c3c;
+      padding-bottom: 10px;
+    }
+
+    .project-tag {
+      font-family: 'Kalam', cursive;
+      font-size: 22px;
+      font-weight: 700;
+      color: #0d1b54;
+      letter-spacing: 0.5px;
+    }
+
+    .meta-box {
+      border: 1.5px solid #e74c3c;
+      padding: 4px 14px;
+      border-radius: 4px;
+      font-family: 'Kalam', cursive;
+      font-size: 16px;
+      line-height: 22px;
+      color: #c0392b;
+      background: rgba(255,255,255,0.7);
+    }
+    .meta-box span {
+      color: #1a237e;
+      font-weight: 700;
+    }
+
+    /* Main Title */
+    .main-title {
+      font-family: 'Kalam', cursive;
+      font-size: 27px;
+      text-align: center;
+      color: #0b1a50;
+      margin: 10px 0 16px 0;
+      text-decoration: underline;
+      text-decoration-style: double;
+      text-decoration-color: #1a237e;
+      letter-spacing: 0.5px;
+    }
+
+    .section-title {
+      font-family: 'Kalam', cursive;
+      font-size: 23px;
+      font-weight: 700;
+      color: #0b1a50;
+      margin: 18px 0 10px 0;
+      border-bottom: 1.5px dashed #1a237e;
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+
+    /* Handwritten Tables */
+    table.nb-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 20px 0;
+      font-size: 19px;
+      line-height: 26px;
+    }
+    table.nb-table th, table.nb-table td {
+      border: 1.5px solid #283593;
+      padding: 6px 10px;
+      text-align: left;
+    }
+    table.nb-table th {
+      background: rgba(40, 53, 147, 0.08);
+      font-family: 'Kalam', cursive;
+      font-size: 19px;
+      color: #000051;
+      text-align: center;
+    }
+    table.nb-table tr.total-row {
+      font-weight: 700;
+      background: rgba(40, 53, 147, 0.05);
+    }
+    .text-center { text-align: center !important; }
+    .text-right { text-align: right !important; }
+
+    /* Highlight box for formulas / results */
+    .result-box {
+      border: 2px solid #1a237e;
+      background: rgba(255, 255, 255, 0.85);
+      padding: 10px 18px;
+      margin: 14px 0;
+      border-radius: 4px;
+      font-size: 22px;
+      line-height: 32px;
+      box-shadow: 2px 2px 0px rgba(26, 35, 126, 0.2);
+    }
+    .final-highlight {
+      border: 2.5px solid #b71c1c;
+      color: #b71c1c;
+      background: #fff9f9;
+      padding: 8px 16px;
+      display: inline-block;
+      font-weight: 700;
+      margin: 6px 0;
+      border-radius: 3px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    ul.nb-list {
+      margin-left: 20px;
+      line-height: 30px;
+    }
+
+    .qa-block {
+      margin-bottom: 14px;
+      background: rgba(255, 255, 255, 0.6);
+      padding: 8px 12px;
+      border-left: 3px solid #1a237e;
+    }
+    .qa-q {
+      font-family: 'Kalam', cursive;
+      font-weight: 700;
+      font-size: 20px;
+      color: #0d1b54;
+    }
+    .qa-a {
+      font-size: 19.5px;
+      line-height: 28px;
+    }
+
+    @media print {
+      body {
+        background: transparent;
+        padding: 0;
+        gap: 0;
+      }
+      .no-print-toolbar {
+        display: none;
+      }
+      .notebook-page {
+        box-shadow: none;
+        border-radius: 0;
+        page-break-after: always;
+        width: 100%;
+        min-height: 100vh;
+        margin: 0;
+        padding: 30px 30px 30px 85px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="no-print-toolbar">
+    <div><strong>ClinixOS Project:</strong> FP Analysis & COCOMO Estimation Lab Notebook (4 Pages)</div>
+    <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+  </div>
+
+  <!-- ==================== PAGE 1 ==================== -->
+  <div class="notebook-page">
+    <div class="page-header">
+      <div class="project-tag">PROJECT: ClinixOS — Hospital Management System</div>
+      <div class="meta-box">
+        PAGE NO: <span>01</span><br>
+        DATE: <span>14 / 10 / 2026</span>
+      </div>
+    </div>
+
+    <div class="main-title">Function Point (FP) Analysis & COCOMO Estimation</div>
+
+    <div class="section-title">Step 1: Source File Classification & LOC Inventory</div>
+    <p>ClinixOS full codebase breakdown across modules, layers, and technology stack:</p>
+
+    <table class="nb-table">
+      <thead>
+        <tr>
+          <th style="width: 14%;">File Type</th>
+          <th style="width: 44%;">Purpose / Architectural Layer</th>
+          <th style="width: 14%;" class="text-center">Files</th>
+          <th style="width: 14%;" class="text-center">LOC</th>
+          <th style="width: 14%;" class="text-center">FP Type</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>.tsx</strong></td>
+          <td>Frontend Clinical Portals, React Views, Modals & UI</td>
+          <td class="text-center">13</td>
+          <td class="text-center">5,281</td>
+          <td class="text-center">ILF</td>
+        </tr>
+        <tr>
+          <td><strong>.ts</strong></td>
+          <td>Backend Controllers, REST Services, Auth & Routing</td>
+          <td class="text-center">34</td>
+          <td class="text-center">4,766</td>
+          <td class="text-center">EI / EO</td>
+        </tr>
+        <tr>
+          <td><strong>.css</strong></td>
+          <td>Glassmorphism Design System, CSS Variables & Tokens</td>
+          <td class="text-center">2</td>
+          <td class="text-center">416</td>
+          <td class="text-center">EIF</td>
+        </tr>
+        <tr>
+          <td><strong>.js</strong></td>
+          <td>Vite Config & Client Entry Bootstrapper</td>
+          <td class="text-center">1</td>
+          <td class="text-center">9</td>
+          <td class="text-center">EI</td>
+        </tr>
+        <tr>
+          <td><strong>.html</strong></td>
+          <td>Single Page Application (SPA) Root Shell</td>
+          <td class="text-center">1</td>
+          <td class="text-center">14</td>
+          <td class="text-center">EO</td>
+        </tr>
+        <tr>
+          <td><strong>.json</strong></td>
+          <td>Package Configs, TypeScript Configs & Mock Schemas</td>
+          <td class="text-center">8</td>
+          <td class="text-center">148</td>
+          <td class="text-center">EQ</td>
+        </tr>
+        <tr>
+          <td><strong>.sqlite</strong></td>
+          <td>Embedded Relational Database (10 Tables)</td>
+          <td class="text-center">1</td>
+          <td class="text-center">~200</td>
+          <td class="text-center">ILF</td>
+        </tr>
+        <tr class="total-row">
+          <td colspan="2"><strong>TOTAL CODEBASE INVENTORY</strong></td>
+          <td class="text-center"><strong>60</strong></td>
+          <td class="text-center"><strong>10,834</strong></td>
+          <td class="text-center"><strong>—</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="result-box">
+      <strong>Total Physical Lines of Code (LOC):</strong> 10,834 lines<br>
+      <strong>Total Size in KLOC:</strong> <span class="final-highlight">KLOC = 10.834</span><br>
+      <strong>Total Classified Source Files:</strong> 60 files across Frontend + Backend + DB
+    </div>
+
+    <div class="section-title">Methodology Notes:</div>
+    <ul class="nb-list">
+      <li><strong>Function Point Analysis (FPA):</strong> Evaluates functional size based on user business requirements independently of implementation tools.</li>
+      <li><strong>COCOMO (Constructive Cost Model):</strong> Algorithmic cost model to predict development Effort, Schedule time, and Staff size from KLOC.</li>
+    </ul>
+  </div>
+
+  <!-- ==================== PAGE 2 ==================== -->
+  <div class="notebook-page">
+    <div class="page-header">
+      <div class="project-tag">PROJECT: ClinixOS — Hospital Management System</div>
+      <div class="meta-box">
+        PAGE NO: <span>02</span><br>
+        DATE: <span>14 / 10 / 2026</span>
+      </div>
+    </div>
+
+    <div class="section-title">Step 2: Unadjusted Function Point (UFP) Calculation</div>
+    <p>Identification of the 5 Function Types per standard IFPUG counting practices:</p>
+
+    <table class="nb-table">
+      <thead>
+        <tr>
+          <th style="width: 14%;">FP Type</th>
+          <th style="width: 44%;">ClinixOS Component Description</th>
+          <th style="width: 12%;" class="text-center">Count</th>
+          <th style="width: 14%;" class="text-center">Weight (Avg)</th>
+          <th style="width: 16%;" class="text-center">UFP</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>ILF</strong><br><small>(Internal Logical Files)</small></td>
+          <td>Patients, Appointments, Beds, Doctors, Prescriptions, Inventory, Billing, Lab Reports, Users, Audit Logs</td>
+          <td class="text-center">10</td>
+          <td class="text-center">10</td>
+          <td class="text-center">100</td>
+        </tr>
+        <tr>
+          <td><strong>EIF</strong><br><small>(Ext. Interface Files)</small></td>
+          <td>Browser LocalStorage Session State, Diagnostic Export JSON Schemas</td>
+          <td class="text-center">2</td>
+          <td class="text-center">7</td>
+          <td class="text-center">14</td>
+        </tr>
+        <tr>
+          <td><strong>EI</strong><br><small>(External Inputs)</small></td>
+          <td>Register Patient, Book Appt, Bed Admission, Prescribe Medicine, Add Lab Order, Generate Invoice, User Login, Change Role, Update Bed Status</td>
+          <td class="text-center">9</td>
+          <td class="text-center">4</td>
+          <td class="text-center">36</td>
+        </tr>
+        <tr>
+          <td><strong>EO</strong><br><small>(External Outputs)</small></td>
+          <td>Discharge Summary PDF, Billing Invoice Receipt, Prescription Slip, Lab Diagnostic Report</td>
+          <td class="text-center">4</td>
+          <td class="text-center">5</td>
+          <td class="text-center">20</td>
+        </tr>
+        <tr>
+          <td><strong>EQ</strong><br><small>(External Inquiries)</small></td>
+          <td>Patient Search, Bed Availability Grid, Doctor Roster, Pharmacy Stock, Bill Status, Patient Vitals History, Lab Results List, Doctor Dept Query, Ward Filter, Medicine Lookup, Audit History, Revenue Summary, User Directory</td>
+          <td class="text-center">13</td>
+          <td class="text-center">4</td>
+          <td class="text-center">52</td>
+        </tr>
+        <tr class="total-row">
+          <td colspan="4"><strong>TOTAL UNADJUSTED FUNCTION POINTS (UFP)</strong></td>
+          <td class="text-center"><strong style="font-size: 22px; color: #b71c1c;">222</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="result-box">
+      <strong>Formula:</strong> UFP = &sum; [ Count &times; Average Weight ]<br>
+      UFP = (10 &times; 10) + (2 &times; 7) + (9 &times; 4) + (4 &times; 5) + (13 &times; 4)<br>
+      UFP = 100 + 14 + 36 + 20 + 52 = <span class="final-highlight">UFP = 222</span>
+    </div>
+
+    <div class="section-title">Function Type Definitions:</div>
+    <ul class="nb-list">
+      <li><strong>ILF:</strong> User-identifiable group of logically related data maintained inside the system.</li>
+      <li><strong>EIF:</strong> Data referenced by the system but maintained by an external application.</li>
+      <li><strong>EI:</strong> Process that receives external inputs and updates internal logical files.</li>
+      <li><strong>EO:</strong> Process sending derived data, reports or calculated results outside.</li>
+      <li><strong>EQ:</strong> Process of immediate data retrieval without updating any internal file.</li>
+    </ul>
+  </div>
+
+  <!-- ==================== PAGE 3 ==================== -->
+  <div class="notebook-page">
+    <div class="page-header">
+      <div class="project-tag">PROJECT: ClinixOS — Hospital Management System</div>
+      <div class="meta-box">
+        PAGE NO: <span>03</span><br>
+        DATE: <span>14 / 10 / 2026</span>
+      </div>
+    </div>
+
+    <div class="section-title">Step 3: 14 General System Characteristics (GSC) & VAF</div>
+    <p>Ratings on scale 0 (No Influence) to 5 (Strong Influence):</p>
+
+    <div class="grid-2">
+      <table class="nb-table" style="margin: 6px 0;">
+        <thead>
+          <tr>
+            <th>Characteristic</th>
+            <th class="text-center">Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1. Data Communications</td><td class="text-center"><strong>4</strong></td></tr>
+          <tr><td>2. Distributed Data Processing</td><td class="text-center"><strong>3</strong></td></tr>
+          <tr><td>3. Performance Objectives</td><td class="text-center"><strong>4</strong></td></tr>
+          <tr><td>4. Heavily Used Configuration</td><td class="text-center"><strong>4</strong></td></tr>
+          <tr><td>5. Transaction Rate</td><td class="text-center"><strong>4</strong></td></tr>
+          <tr><td>6. On-line Data Entry</td><td class="text-center"><strong>5</strong></td></tr>
+          <tr><td>7. End-User Efficiency</td><td class="text-center"><strong>4</strong></td></tr>
+        </tbody>
+      </table>
+
+      <table class="nb-table" style="margin: 6px 0;">
+        <thead>
+          <tr>
+            <th>Characteristic</th>
+            <th class="text-center">Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>8. On-line Update</td><td class="text-center"><strong>4</strong></td></tr>
+          <tr><td>9. Complex Processing</td><td class="text-center"><strong>3</strong></td></tr>
+          <tr><td>10. Reusability</td><td class="text-center"><strong>3</strong></td></tr>
+          <tr><td>11. Installation Ease</td><td class="text-center"><strong>3</strong></td></tr>
+          <tr><td>12. Operational Ease</td><td class="text-center"><strong>4</strong></td></tr>
+          <tr><td>13. Multiple Sites</td><td class="text-center"><strong>2</strong></td></tr>
+          <tr><td>14. Facilitate Change</td><td class="text-center"><strong>3</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="result-box">
+      <strong>Total Degree of Influence:</strong> TDI = &sum; F<sub>i</sub> = 4+3+4+4+4+5+4+4+3+3+3+4+2+3 = <span class="final-highlight">TDI = 50</span><br>
+      <strong>Value Adjustment Factor (VAF):</strong><br>
+      VAF = 0.65 + (0.01 &times; TDI) = 0.65 + (0.01 &times; 50) = <span class="final-highlight">VAF = 1.15</span><br>
+      <strong>Final Adjusted Function Points (FP):</strong><br>
+      FP = UFP &times; VAF = 222 &times; 1.15 = <span class="final-highlight" style="font-size: 24px;">FP = 255.30</span>
+    </div>
+
+    <div class="section-title">Step 4: COCOMO Model Mode Selection</div>
+    <ul class="nb-list">
+      <li><strong>Selected Mode:</strong> <span class="final-highlight">Semi-Detached Mode</span></li>
+      <li><strong>Justification:</strong> ClinixOS operates in a healthcare environment with strict patient safety, multi-role data access (Doctors, Nurses, Pharmacy, Admin), real-time bed tracking, and transactional SQLite database. Teams possess intermediate experience with mixed hardware/software constraints.</li>
+      <li><strong>Semi-Detached Constants:</strong>
+        <br>&bull; a = 3.0 &nbsp;&nbsp;&nbsp;&bull; b = 1.12 &nbsp;&nbsp;&nbsp;&bull; c = 2.5 &nbsp;&nbsp;&nbsp;&bull; d = 0.35
+      </li>
+    </ul>
+  </div>
+
+  <!-- ==================== PAGE 4 ==================== -->
+  <div class="notebook-page">
+    <div class="page-header">
+      <div class="project-tag">PROJECT: ClinixOS — Hospital Management System</div>
+      <div class="meta-box">
+        PAGE NO: <span>04</span><br>
+        DATE: <span>14 / 10 / 2026</span>
+      </div>
+    </div>
+
+    <div class="section-title">Step 5: COCOMO Equations & Final Calculations</div>
+    <p>Using KLOC = 10.834 in Semi-Detached Mode (a = 3.0, b = 1.12, c = 2.5, d = 0.35):</p>
+
+    <div class="result-box">
+      <strong>1. Effort Required (E):</strong><br>
+      E = a &times; (KLOC)<sup>b</sup> = 3.0 &times; (10.834)<sup>1.12</sup><br>
+      (10.834)<sup>1.12</sup> = 14.78<br>
+      E = 3.0 &times; 14.78 = <span class="final-highlight">E = 44.34 Person-Months (&approx; 44.3 PM)</span>
+      <br><br>
+      <strong>2. Development Time (Tdev):</strong><br>
+      Tdev = c &times; (E)<sup>d</sup> = 2.5 &times; (44.34)<sup>0.35</sup><br>
+      (44.34)<sup>0.35</sup> = 3.96<br>
+      Tdev = 2.5 &times; 3.96 = <span class="final-highlight">Tdev = 9.90 Months (&approx; 9.9 Months)</span>
+      <br><br>
+      <strong>3. Average Staff Size (SS):</strong><br>
+      SS = E / Tdev = 44.34 / 9.90 = <span class="final-highlight">SS = 4.48 Persons (&approx; 4 to 5 Persons)</span>
+      <br><br>
+      <strong>4. Productivity:</strong><br>
+      Productivity = KLOC / E = 10.834 / 44.34 = <span class="final-highlight">0.244 KLOC / Month (244 LOC / PM)</span>
+    </div>
+
+    <div class="section-title">Viva / Lab FAQ Section:</div>
+    <div class="qa-block">
+      <div class="qa-q">Q1: Why was Semi-Detached mode chosen over Organic mode?</div>
+      <div class="qa-a">Hospital management requires zero-downtime bed management, vital monitoring, prescription integrity, and strict access controls. Unlike casual organic utility software, ClinixOS involves medium complexity and moderate-to-high operational rigor.</div>
+    </div>
+    <div class="qa-block">
+      <div class="qa-q">Q2: What is the key difference between LOC and Function Points?</div>
+      <div class="qa-a">LOC measures the physical volume of written code (which fluctuates with language style and comments), whereas Function Points measure the actual business functionality delivered to the user. Here, 10,834 LOC yielded 255.30 FP.</div>
+    </div>
+    <div class="qa-block">
+      <div class="qa-q">Q3: How does SQLite impact estimation and portability?</div>
+      <div class="qa-a">SQLite runs in-process as an embedded file-based relational database. It eliminates separate database server maintenance overhead (reducing Installation Ease complexity) while guaranteeing full ACID transactions across all machines.</div>
+    </div>
+  </div>
+
+</body>
+</html>
