@@ -1,63 +1,125 @@
 # ClinixOS — Intelligent Clinical & Hospital Management System
-**Conforming to IEEE Std 830-1998 & HL7 v3 Healthcare Standards**
+
+> An enterprise-grade Smart Hospital Management System (SHMS) built to automate clinical, nursing, pharmacy, and front-desk workflows.
 
 ---
 
-## 🌟 Executive Overview
-**ClinixOS** is an enterprise-grade Smart Hospital Management System (SHMS) developed to automate clinical, nursing, pharmacy, and front-desk workflows. It replaces fragmented paper logs and siloed databases with a synchronized, real-time operating platform.
+## 🌟 Overview
+
+ClinixOS replaces fragmented paper logs and siloed databases with a synchronized, real-time hospital operating platform. It provides role-based access for every staff member — from doctors and nurses to receptionists and pharmacists.
 
 ---
 
-## 🚀 Live System Architecture
-- **Frontend Client**: React 18 + TypeScript + Vite with **Glassmorphism** clinical design system.
-  - **Local URL**: `http://localhost:3001`
-- **Backend API Server**: Node.js + Express + TypeScript + SQLite/ANSI SQL Engine + PDFKit.
-  - **REST API**: `http://localhost:5000/api`
-  - **Real-Time WebSocket Telemetry**: `ws://localhost:5000/ws`
+## 🚀 Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 18 + TypeScript + Vite |
+| Backend API | Node.js + Express + TypeScript |
+| Database | SQLite |
+| Real-Time | WebSocket |
+| PDF Reports | PDFKit |
+| Auth | JWT + bcrypt |
 
 ---
 
-## 🛡️ Role-Based Portals & Functionality
-ClinixOS features 6 distinct role workspaces with dynamic data and clean placeholders:
+## 🛡️ Role-Based Portals
 
-1. **Admin Executive Hub (`FR-06`, `FR-08`)**
-   - Real-time Hospital KPIs (Bed Occupancy rate, ICU Vacancy %, Outpatient Visits today, Revenue).
-   - Date filtering (`Today`, `Last 7 Days`, `Current Month`).
-   - One-click Automated PDF Report Generation (Monthly Billing, Pharmacy Inventory Audit, Ward Census).
-2. **Ward Bed Mapping & Live Telemetry (`FR-03`, `BR-03`)**
-   - Interactive visual grid covering General, Semi-Private, and Intensive Care Units (ICU).
-   - Live color statuses: 🟩 **Vacant**, 🟥 **Occupied**, 🟨 **Cleaning Needed**, 🟧 **Maintenance**.
-   - Automatic ICU low vacancy warning banner (< 10%).
-   - Business rule enforcement: prevents assigning beds marked as Cleaning or Maintenance.
-3. **Doctor Clinical Workspace (`FR-01`, `FR-02`, `BR-02`)**
-   - Split-pane interface: Patient clinical timeline on left, diagnosis and prescription pad on right.
-   - Built-in **ICD-10 Diagnostic Classification catalog** with auto-suggest search.
-   - Dynamic multi-item drug prescription builder (Dosage, Frequency, Duration, Quantity).
-   - Verified digital doctor license signature.
-   - Doctor schedule leave toggle (blocks appointment slots in real time).
-4. **Receptionist Intake & Billing Desk (`FR-01`, `FR-02`, `FR-09`)**
-   - Walk-in registration generating non-modifiable sequential Patient IDs (`PT-2026-0001`).
-   - Conflict-validated appointment booking across operating hours (8:00 AM – 8:00 PM).
-   - Anti-hoarding restriction: limits patients to max 2 active pending appointments.
-   - Invoicing with itemized consultation, bed care, and medication costs.
-   - Multi-mode payment recording (Cash, Card, Online) and thermal receipt printer layout.
-5. **Pharmacy & Barcode Dispensing Console (`FR-05`, `Section 3.2`)**
-   - Hardware USB Barcode scanner simulator.
-   - Prescription fulfillment queue with automated stock decrements.
-   - Critical low-stock visual warnings & WebSocket alerts.
-   - Custom reorder threshold configuration & inventory audit logs.
-6. **Patient Self-Service Portal (`FR-01.5`, `FR-02`)**
-   - Self-service booking with live doctor slot reconciliation.
-   - Electronic prescription record review.
-   - Online invoice settlement & insurance claim logging.
-   - Doctor consultation review & rating (1 to 5 stars).
+ClinixOS provides **6 secure role workspaces**, each with dynamic live data:
+
+### 🔵 Admin Executive Hub
+- Real-time Hospital KPIs (Bed Occupancy, ICU Vacancy, Revenue)
+- Date filtering: Today / Last 7 Days / Current Month
+- One-click automated PDF Report Generation
+
+### 🟢 Ward Bed Manager (Nurse Station)
+- Interactive visual bed grid — General, Semi-Private, ICU wards
+- Live statuses: Vacant, Occupied, Cleaning, Maintenance
+- ICU low-vacancy warning banner
+- Dynamic bed admission & discharge workflows
+
+### 🩺 Doctor Clinical Workspace
+- Split-pane: Patient timeline + Diagnosis & Prescription pad
+- ICD-10 Diagnostic Classification catalog with auto-suggest
+- Multi-drug prescription builder with dosage/frequency/duration
+- Doctor schedule & leave management
+
+### 🏥 Receptionist Intake & Billing Desk
+- Walk-in patient registration with auto-generated Patient IDs
+- Appointment booking with conflict validation
+- Itemized invoicing with multi-mode payment (Cash, Card, Online)
+- Thermal receipt layout
+
+### 💊 Pharmacy & Barcode Dispensing Console
+- Barcode scanner integration
+- Prescription fulfillment queue with automatic stock decrements
+- Low-stock warnings and reorder alerts
+- Inventory audit logs
+
+### 👤 Patient Self-Service Portal
+- Appointment booking with live doctor slot reconciliation
+- Electronic prescription record access
+- Invoice settlement and insurance claim logging
+- Doctor consultation reviews & ratings
 
 ---
 
-## 🧪 Automated Test Suite
-To run the automated IEEE 830 acceptance test suite:
+## 🧪 Test Suite
+
 ```bash
 cd server
-node -e "require('ts-node/register'); require('../tests/api.test.ts')"
+npm run test
 ```
-**Results**: `7 PASSED, 0 FAILED` (100% Pass Rate).
+Results: **7 PASSED, 0 FAILED** ✅
+
+---
+
+## 🔐 Demo Login Credentials
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | admin@clinixos.org | Admin@2026 |
+| Doctor | doctor.cardio@clinixos.org | Doctor@2026 |
+| Nurse | nurse@clinixos.org | Nurse@2026 |
+| Receptionist | receptionist@clinixos.org | Recept@2026 |
+| Pharmacist | pharmacist@clinixos.org | Pharma@2026 |
+| Patient | patient.demo@clinixos.org | Patient@2026 |
+
+---
+
+## 🏃 Run Locally
+
+```bash
+# Install all dependencies
+npm install
+
+# Start backend (port 5000)
+cd server && npm run dev
+
+# Start frontend (port 3000)
+cd client && npm run dev
+```
+
+---
+
+## 📁 Project Structure
+
+```
+clinixos/
+├── client/          # React frontend (Vite + TypeScript)
+│   └── src/
+│       ├── portals/ # Role-based dashboards
+│       ├── components/
+│       └── services/
+├── server/          # Express backend (Node.js + TypeScript)
+│   └── src/
+│       ├── routes/
+│       ├── database/
+│       └── middleware/
+├── shared/          # Shared clinical engine & types
+└── tests/           # API & clinical engine tests
+```
+
+---
+
+*ClinixOS — Built for real hospitals, real workflows.*
